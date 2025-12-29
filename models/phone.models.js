@@ -28,13 +28,13 @@ const phoneSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    color : [Array],
-    ram : [Array],
+    color : [String],
+    ram : [String],
     processor : {
         brand : {type: String, required: true},
         type : {type: String, required: true},
     },
-    storage : [Array],
+    storage : [String],
     display : {
         type: String,
         required: true,
