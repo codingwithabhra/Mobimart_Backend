@@ -4,92 +4,184 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const Addressdata = require("../models/addresss.models");
 
-//creating new address data
-async function createAddressData(newData){
+
+// =====================================================
+// CREATE NEW ADDRESS
+// =====================================================
+
+async function createAddressData(userId, addressData) {
     try {
-        const createAddressData = await Addressdata(newData); 
-        const savedata = await createAddressData.save();
-        return savedata;
+        const newAddress = new Addressdata({
+            ...addressData,
+            user: userId,
+        });
+
+        const savedAddress = await newAddress.save();
+
+        return savedAddress;
     } catch (error) {
         throw error;
     }
-};
+}
 
-// to send data to DB
-router.post("/", authMiddleware, async(req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
     try {
-        const newaddressData = await createAddressData(req.body);
-        res.status(200).json({message: "Data added successfully", newaddressData: newaddressData});
+        const userId = req.user._id;
+
+        const newAddress = await createAddressData(
+            userId,
+            req.body
+        );
+
+        res.status(201).json({
+            message: "Address added successfully",
+            address: newAddress,
+        });
     } catch (error) {
-        res.status(500).json({error: "Failed to add data to database"})
+        console.error("Create address error:", error);
+
+        res.status(500).json({
+            error: "Failed to add address",
+        });
     }
 });
 
-// to get all address from DB
-async function getAllAddress(){
+
+// =====================================================
+// GET ALL ADDRESSES OF LOGGED-IN USER
+// =====================================================
+
+async function getAllAddress(userId) {
     try {
-        const allAddress = await Addressdata.find();
+        const allAddress = await Addressdata.find({
+            user: userId,
+        }).sort({ createdAt: -1 });
+
         return allAddress;
     } catch (error) {
         throw error;
     }
 }
 
-router.get("/", authMiddleware, async(req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
     try {
-        const allAddress = await getAllAddress();
-        if(allAddress.length != 0){
-            res.json(allAddress);
-        } else {
-            res.status(404).json({error: "Data not found"})
-        }
+        const userId = req.user._id;
+
+        const allAddress = await getAllAddress(userId);
+
+        res.status(200).json(allAddress);
     } catch (error) {
-        res.status(500).json({error: "Failed to get data"});
+        console.error("Get addresses error:", error);
+
+        res.status(500).json({
+            error: "Failed to get addresses",
+        });
     }
 });
 
-// to delete from DB
-async function deleteAddress(addressId){
+
+// =====================================================
+// DELETE ADDRESS
+// =====================================================
+
+async function deleteAddress(addressId, userId) {
     try {
-        const deleteAddress = await Addressdata.findByIdAndDelete(addressId);
-        return deleteAddress;
+        const deletedAddress = await Addressdata.findOneAndDelete({
+            _id: addressId,
+            user: userId,
+        });
+
+        return deletedAddress;
     } catch (error) {
         throw error;
     }
 }
 
-router.delete("/:addressId", authMiddleware, async(req, res)=> {
+router.delete("/:addressId", authMiddleware, async (req, res) => {
     try {
-        const deleteData = await deleteAddress(req.params.addressId);
-        if(deleteData){
-            res.status(200).json({message: "Data deleted successfully"});
+        const userId = req.user._id;
+        const addressId = req.params.addressId;
+
+        const deletedAddress = await deleteAddress(
+            addressId,
+            userId
+        );
+
+        if (!deletedAddress) {
+            return res.status(404).json({
+                error: "Address not found",
+            });
         }
+
+        res.status(200).json({
+            message: "Address deleted successfully",
+            address: deletedAddress,
+        });
     } catch (error) {
-        res.status(500).json({error: "Failed to delete address"})
+        console.error("Delete address error:", error);
+
+        res.status(500).json({
+            error: "Failed to delete address",
+        });
     }
 });
 
-//to update DB 
-async function updateAddress(addressId, dataToUpdate){
+
+// =====================================================
+// UPDATE ADDRESS
+// =====================================================
+
+async function updateAddress(addressId, userId, dataToUpdate) {
     try {
-        const updateAddressData = await Addressdata.findByIdAndUpdate(addressId, dataToUpdate, {new:true});
-        return updateAddressData;
+        const updatedAddress = await Addressdata.findOneAndUpdate(
+            {
+                _id: addressId,
+                user: userId,
+            },
+            {
+                $set: dataToUpdate,
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        return updatedAddress;
     } catch (error) {
         throw error;
     }
 }
 
-router.post("/:addressId", authMiddleware, async(req, res) => {
+router.post("/:addressId", authMiddleware, async (req, res) => {
     try {
-        const updateData = await updateAddress(req.params.addressId, req.body);
-        if(updateData){
-            res.status(200).json({message: "Data updated successfully", updateData:updateData})
-        } else {
-            res.status(404).json({error: "Address not found"})
+        const userId = req.user._id;
+        const addressId = req.params.addressId;
+
+        const updatedAddress = await updateAddress(
+            addressId,
+            userId,
+            req.body
+        );
+
+        if (!updatedAddress) {
+            return res.status(404).json({
+                error: "Address not found",
+            });
         }
+
+        res.status(200).json({
+            message: "Address updated successfully",
+            address: updatedAddress,
+        });
     } catch (error) {
-        res.status(500).json({error: "Failed to update"})
+        console.error("Update address error:", error);
+
+        res.status(500).json({
+            error: "Failed to update address",
+        });
     }
 });
+
 
 module.exports = router;

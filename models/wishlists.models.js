@@ -4,7 +4,7 @@ const wishlistItemSchema = new mongoose.Schema(
     {
         product: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Product", // must match your Product model name
+            ref: "Product",
             required: true,
         },
 

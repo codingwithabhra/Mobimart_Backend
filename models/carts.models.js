@@ -33,7 +33,7 @@ const cartItemSchema = new mongoose.Schema(
         },
     },
     {
-        _id: false,
+        _id: true,
     }
 );
 

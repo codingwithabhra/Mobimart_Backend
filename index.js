@@ -40,7 +40,7 @@ const startSever = async () => {
         // ---------------------------------------- PRODUCT ROUTES ---------------------------------
 
         const productRoutes = require("./routes/product.route");
-        app.use("/product", productRoutes);
+        app.use("/products", productRoutes);
 
         // ---------------------------------------- WISHLIST ROUTES ---------------------------------
 
