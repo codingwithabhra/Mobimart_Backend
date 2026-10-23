@@ -4,7 +4,7 @@ app.use(express.json());
 
 const cors = require('cors');
 const corsOption = {
-    origin: ["http://localhost:5173", "https://lead-flow-kappa-lime.vercel.app"],
+    origin: ["http://localhost:5173", "https://mobi-mart-alpha.vercel.app"],
     credentials: true,
     optionSuccessStatus: 200,
 };
